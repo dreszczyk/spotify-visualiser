@@ -1,7 +1,6 @@
 /**
     https://github.com/spotify/web-api-auth-examples/blob/master/authorization_code/app.js
 */
-import settings from '../settings';
 
 const express = require('express'); // Express web server framework
 const request = require('request'); // "Request" library
@@ -9,6 +8,7 @@ const cors = require('cors');
 const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 
+const settings = require('../settings');
 const client_id = settings.client_id; // Your client id
 const client_secret = settings.client_secret; // Your secret
 const redirect_uri = settings.redirect_uri; // Your redirect uri
@@ -30,24 +30,28 @@ app.use(express.static(__dirname + '/public'))
     .use(cors())
     .use(cookieParser());
 
-app.get('/login', function (req, res) {
+app.get('/api/login', function (req, res) {
 
     const state = generateRandomString(16);
     res.cookie(stateKey, state);
+    console.log('stateKey', state);
+    
 
     // your application requests authorization
-    const scope = 'user-read-private user-read-email';
-    res.redirect('https://accounts.spotify.com/authorize?' +
+    const scope = 'user-read-currently-playing user-read-playback-state';
+    res.send({
+        redirectUrl: 'https://accounts.spotify.com/authorize?' +
         querystring.stringify({
             response_type: 'code',
             client_id: client_id,
             scope: scope,
             redirect_uri: redirect_uri,
             state: state
-        }));
+        })
+    });
 });
 
-app.get('/callback', function (req, res) {
+app.get('/api/callback', function (req, res) {
 
     // your application requests refresh and access tokens
     // after checking the state parameter
@@ -56,11 +60,13 @@ app.get('/callback', function (req, res) {
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
+    console.log('callback', state, storedState, req.cookies[stateKey]);
+    
+
     if (state === null || state !== storedState) {
-        res.redirect('/#' +
-            querystring.stringify({
-                error: 'state_mismatch'
-            }));
+        res.send({
+            error: 'state_mismatch'
+        });
     } else {
         res.clearCookie(stateKey);
         const authOptions = {
@@ -96,22 +102,20 @@ app.get('/callback', function (req, res) {
                 });
 
                 // we can also pass the token to the browser to make requests from there
-                res.redirect('/#' +
-                    querystring.stringify({
-                        access_token: access_token,
-                        refresh_token: refresh_token
-                    }));
+                res.send({
+                    access_token: access_token,
+                    refresh_token: refresh_token
+                });
             } else {
-                res.redirect('/#' +
-                    querystring.stringify({
-                        error: 'invalid_token'
-                    }));
+                res.send({
+                    error: 'invalid_token'
+                });
             }
         });
     }
 });
 
-app.get('/refresh_token', function (req, res) {
+app.get('/api/refresh_token', function (req, res) {
 
     // requesting access token from refresh token
     const refresh_token = req.query.refresh_token;
@@ -137,5 +141,5 @@ app.get('/refresh_token', function (req, res) {
     });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+console.log('Listening on 3001');
+app.listen(3001);

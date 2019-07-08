@@ -1,29 +1,23 @@
 import React, { Component } from 'react';
-import * as SpotifyWebApi from 'spotify-web-api-js';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import './App.css';
-import settings from '../settings';
 
 import {
-    AppWrapper,
-    Container,
-    Button,
-} from './components';
+    Main,
+    ProxyPage,
+    Logged,
+} from './pages'
 
-const spotify = new SpotifyWebApi();
-spotify.setAccessToken(settings.accessToken);
-
-export default class App extends Component {
-    state = {
-    }
+class App extends Component {
     render() {
         return (
-            <AppWrapper>
-                <Container>
-                    <h2>spotify visualiser</h2>
-                    <h4>You need to log in.</h4>
-                    <Button>log in</Button>
-                </Container>
-            </AppWrapper>
+            <Router>
+                <Route exact path='/' component={Main} />
+                <Route path='/proxy' component={ProxyPage} />
+                <Route path='/logged' component={Logged} />
+            </Router>
         );
     }
 }
+
+export default App;
