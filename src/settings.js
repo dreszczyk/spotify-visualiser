@@ -1,4 +1,4 @@
 const settings = {
-    accessToken: '',
+    accessToken: '', // secret accessToken ;)
 };
 module.exports = settings;
